@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://localhost:7005/api/';
+const API_URL = 'https://5252-2001-818-eb85-9b00-9b0d-7f57-7155-5d2a.ngrok.io/api/';
 
 const api = axios.create({
     baseURL: API_URL,
