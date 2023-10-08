@@ -6,8 +6,9 @@ import {
     TextInput,
     TouchableOpacity,
     TouchableWithoutFeedback,
-    Keyboard
+    Keyboard,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
 import CustomButton from '../components/customButton';
@@ -18,7 +19,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { useFonts } from "expo-font";
 
-import { loginUser } from '../services/api';
+import { loginUser, setAuthToken } from '../services/api';
 
 function LoginScreen() {
     const navigation = useNavigation();
@@ -34,11 +35,12 @@ function LoginScreen() {
             const userDetails = {
                 email: email,
                 password: password,
-              };
+            };
 
             const response = await loginUser(userDetails);
 
-            // If Success
+            await AsyncStorage.setItem('token', response.token);
+            setAuthToken(response.token);
             navigation.navigate('Home');
 
             // Process response here, navigate to login, show a success message, etc.

@@ -9,6 +9,24 @@ const api = axios.create({
     },
   });
 
+//Authentication
+  export const setAuthToken = token => {
+    if (token) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete api.defaults.headers.common['Authorization'];
+    }
+  };
+
+  export const loginUser = async (credentials) => {
+    try {
+      const response = await api.post('user/login', credentials);
+      return response.data;
+    } catch (error) {
+      throw error.response.data;
+    }
+  };
+
   export const registerUser = async (userData) => {
     try {
       const response = await api.post('user/register', userData);
@@ -18,9 +36,19 @@ const api = axios.create({
     }
   };
   
-  export const loginUser = async (credentials) => {
+//Trips
+  export const startUserTrip = async (startTime) => {
     try {
-      const response = await api.post('user/login', credentials);
+      const response = await api.post('trip/start', { StartTime: startTime });
+      return response.data;
+    } catch (error) {
+      throw error.response.data;
+    }
+  };
+  
+  export const endUserTrip = async (tripData) => {
+    try {
+      const response = await api.post('trip/end', tripData);
       return response.data;
     } catch (error) {
       throw error.response.data;
