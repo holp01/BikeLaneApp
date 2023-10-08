@@ -17,6 +17,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { useFonts } from "expo-font";
+import { registerUser } from '../services/api';
 
 function RegisterScreen() {
     const navigation = useNavigation();
@@ -29,10 +30,25 @@ function RegisterScreen() {
         'Roboto-Regular': require("../assets/fonts/Roboto-Regular.ttf")
     });
 
-    const handleRegister = () => {
-        // RegisterAPI Request using name, email, password, confirm password
-        // If Success
-        navigation.navigate('Login');
+    const handleRegister = async () => {
+        try {
+            const userDetails = {
+                Email: email,
+                Password: password,
+                ConfirmPassword: confirmPassword,
+                DisplayName: name
+              };
+
+            const response = await registerUser(userDetails);
+
+            // If Success
+            navigation.navigate('Login');
+
+            // Process response here, navigate to login, show a success message, etc.
+        } catch (error) {
+            // Handle the error, e.g., display a message to the user.
+            console.error('Error during registration:', error);
+        }
     };
 
     const handlePress = () => {

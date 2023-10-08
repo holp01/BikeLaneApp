@@ -18,6 +18,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { useFonts } from "expo-font";
 
+import { loginUser } from '../services/api';
+
 function LoginScreen() {
     const navigation = useNavigation();
     const [email, setEmail] = useState('');
@@ -27,10 +29,23 @@ function LoginScreen() {
         'Roboto-Regular': require("../assets/fonts/Roboto-Regular.ttf")
     });
 
-    const handleLogin = () => {
-        // API Login with email and password
-        //if success
-        navigation.navigate('Home');
+    const handleLogin = async () => {
+        try {
+            const userDetails = {
+                email: email,
+                password: password,
+              };
+
+            const response = await loginUser(userDetails);
+
+            // If Success
+            navigation.navigate('Home');
+
+            // Process response here, navigate to login, show a success message, etc.
+        } catch (error) {
+            // Handle the error, e.g., display a message to the user.
+            console.error('Error during Login:', error);
+        }
     };
 
     const handleRegisterRedirect = () => {
