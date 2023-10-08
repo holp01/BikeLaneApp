@@ -40,10 +40,13 @@ function HomeMapScreen() {
 
     const startTrip = async () => {
         setIsTripActive(true);
-        // Set up a timer to update tripTime every second
-        const tripTimeInterval = setInterval(() => {
+
+        // Clear any existing intervals for tripTime
+        clearInterval(tripTimeIntervalRef.current);
+        // Set up a timer to update tripTime every second and directly assign to tripTimeIntervalRef.current
+        tripTimeIntervalRef.current = setInterval(() => {
             setTripTime(prevTime => prevTime + 1);
-        }, 1000);  // Every second
+        }, 1000); // Increment every second
 
         // Initial waypoint capture
         const location = await Location.getCurrentPositionAsync({});
@@ -52,16 +55,21 @@ function HomeMapScreen() {
 
         setCurrentLocation(location.coords);  // Set current location
 
-        // Set up a timer to capture waypoints every few seconds
-        const waypointInterval = setInterval(async () => {
+        // Clear any existing intervals for waypoints
+        clearInterval(waypointIntervalRef.current);
+        // Set up a timer to capture waypoints every few seconds and directly assign to waypointIntervalRef.current
+        waypointIntervalRef.current = setInterval(async () => {
             const location = await Location.getCurrentPositionAsync({});
             const currentDateTimeInterval = new Date().toISOString();
+            // Calculate the distance from the last waypoint
+            if (waypoints.length > 0) {
+                const lastWaypoint = waypoints[waypoints.length - 1];
+                const distance = haversine(lastWaypoint.latitude, lastWaypoint.longitude, location.coords.latitude, location.coords.longitude);
+                setDistanceTravelled(prevDistance => prevDistance + distance);
+            }
+
             setWaypoints(prevWaypoints => [...prevWaypoints, { ...location.coords, timestamp: currentDateTimeInterval }]);
         }, 5000);  // for example, every 5 seconds
-
-        // Store the interval ID in a ref so you can clear it later
-        waypointIntervalRef.current = waypointInterval;
-        tripTimeIntervalRef.current = tripTimeInterval;
 
         // Start trip in backend
         const tripId = await startUserTrip(new Date().toISOString());
@@ -72,7 +80,6 @@ function HomeMapScreen() {
         setIsTripActive(false);
 
         clearInterval(waypointIntervalRef.current); // Stop capturing waypoints
-
         clearInterval(tripTimeIntervalRef.current); //Clear time interval
 
         // Prepare data to send to backend
@@ -96,9 +103,12 @@ function HomeMapScreen() {
 
         // Reset waypoints for the next trip
         setWaypoints([]);
-
         // Reset current trip ID
         setCurrentTripId(null);
+        //Reset distance
+        setDistanceTravelled(0);
+        //reset trip time
+        setTripTime(0);
     };
 
     const formatTime = (seconds) => {
@@ -107,6 +117,27 @@ function HomeMapScreen() {
         const remainingSeconds = seconds % 60;
 
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
+    const haversine = (lat1, lon1, lat2, lon2) => {
+        const toRad = (value) => (value * Math.PI) / 180;
+
+        const R = 6371; // Earth radius in kilometers
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    };
+
+    const formatDistance = (distanceInKm) => {
+        if (distanceInKm < 1) {
+            return `${Math.round(distanceInKm * 1000)} meters`;
+        }
+        return `${distanceInKm.toFixed(1)} km`;
     };
 
     return (
@@ -128,7 +159,7 @@ function HomeMapScreen() {
                     {isTripActive ? (
                         <>
                             <Button title="End Trip" onPress={endTrip} />
-                            <Text>Distance Travelled: {distanceTravelled} km</Text>
+                            <Text>Distance Travelled: {formatDistance(distanceTravelled)}</Text>
                             <Text>Time Elapsed: {formatTime(tripTime)}</Text>
                         </>
                     ) : (
