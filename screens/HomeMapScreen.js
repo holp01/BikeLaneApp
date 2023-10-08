@@ -61,15 +61,17 @@ function HomeMapScreen() {
         waypointIntervalRef.current = setInterval(async () => {
             const location = await Location.getCurrentPositionAsync({});
             const currentDateTimeInterval = new Date().toISOString();
-            // Calculate the distance from the last waypoint
-            if (waypoints.length > 0) {
-                const lastWaypoint = waypoints[waypoints.length - 1];
-                const distance = haversine(lastWaypoint.latitude, lastWaypoint.longitude, location.coords.latitude, location.coords.longitude);
-                setDistanceTravelled(prevDistance => prevDistance + distance);
-            }
 
-            setWaypoints(prevWaypoints => [...prevWaypoints, { ...location.coords, timestamp: currentDateTimeInterval }]);
-        }, 5000);  // for example, every 5 seconds
+            setWaypoints(prevWaypoints => {
+                if (prevWaypoints.length > 0) {
+                    const lastWaypoint = prevWaypoints[prevWaypoints.length - 1];
+                    const distance = haversine(lastWaypoint.latitude, lastWaypoint.longitude, location.coords.latitude, location.coords.longitude);
+                    setDistanceTravelled(prevDistance => prevDistance + distance);
+                }
+
+                return [...prevWaypoints, { ...location.coords, timestamp: currentDateTimeInterval }];
+            });
+        }, 5000);
 
         // Start trip in backend
         const tripId = await startUserTrip(new Date().toISOString());
