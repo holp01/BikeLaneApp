@@ -36,19 +36,18 @@ function LoginScreen() {
                 email: email,
                 password: password,
             };
-
+     
             const response = await loginUser(userDetails);
-
-            await AsyncStorage.setItem('token', response.token);
-            setAuthToken(response.token);
+            console.log(response);
+            await AsyncStorage.setItem('accessToken', response.token);
+            await AsyncStorage.setItem('refreshToken', response.refreshToken);
+     
+            setAuthToken(response.Token);
             navigation.navigate('Home');
-
-            // Process response here, navigate to login, show a success message, etc.
         } catch (error) {
-            // Handle the error, e.g., display a message to the user.
             console.error('Error during Login:', error);
         }
-    };
+     };
 
     const handleRegisterRedirect = () => {
         navigation.navigate('Register');
