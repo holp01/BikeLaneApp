@@ -38,11 +38,10 @@ function LoginScreen() {
             };
      
             const response = await loginUser(userDetails);
-            console.log(response);
             await AsyncStorage.setItem('accessToken', response.token);
             await AsyncStorage.setItem('refreshToken', response.refreshToken);
      
-            setAuthToken(response.Token);
+            setAuthToken(response.token);
             navigation.navigate('Home');
         } catch (error) {
             console.error('Error during Login:', error);

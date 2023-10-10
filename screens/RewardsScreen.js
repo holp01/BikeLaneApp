@@ -11,7 +11,8 @@ function RewardsScreen() {
 
     useEffect(() => {
         fetchActiveRewards();
-    }, []);
+        console.log(rewards);  // Log the rewards to inspect the data
+    }, [rewards]);
 
     const fetchActiveRewards = async () => {
         try {

@@ -17,6 +17,17 @@ const SecureStorage = {
 };
 
 //Authentication
+api.interceptors.request.use(
+  async config => {
+    const token = await SecureStorage.getItem('accessToken');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  error => Promise.reject(error)
+);
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -25,8 +36,8 @@ api.interceptors.response.use(
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const refreshToken = await SecureStorage.getItem('refreshToken');
-      const newTokenData = await refreshToken(refreshToken);
+      const storedRefreshToken = await SecureStorage.getItem('refreshToken');
+      const newTokenData = await refreshTokenFunction(storedRefreshToken);
       
       await SecureStorage.setItem('accessToken', newTokenData.Token);
       api.defaults.headers['Authorization'] = `Bearer ${newTokenData.Token}`;
@@ -55,7 +66,7 @@ export const loginUser = async (credentials) => {
   }
 };
 
-export const refreshToken = async (refreshToken) => {
+export const refreshTokenFunction = async (refreshToken) => {
   try {
     const response = await api.post('user/refresh-token', { RefreshToken: refreshToken });
     return response.data;
