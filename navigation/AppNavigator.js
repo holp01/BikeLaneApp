@@ -5,26 +5,32 @@ import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
+import RewardsScreen from '../screens/RewardsScreen';
 
 const Stack = createStackNavigator();
 
 function AppNavigator({ initialRoute }) {
     return (
         <Stack.Navigator initialRouteName={initialRoute}>
-            <Stack.Screen 
-                name="Login" 
-                component={LoginScreen} 
-                options={{ headerShown: false }} 
-            />
-            <Stack.Screen 
-                name="Register" 
-                component={RegisterScreen} 
+            <Stack.Screen
+                name="Login"
+                component={LoginScreen}
                 options={{ headerShown: false }}
             />
-            <Stack.Screen 
-                name="Home" 
-                component={HomeScreen} 
+            <Stack.Screen
+                name="Register"
+                component={RegisterScreen}
                 options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="RewardsScreen"
+                component={RewardsScreen}
+                options={{ title: 'Rewards' }}
             />
         </Stack.Navigator>
     );

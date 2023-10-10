@@ -132,3 +132,22 @@ export const redeemReward = async (rewardId) => {
     throw error.response.data;
   }
 };
+
+//Partners
+export const getPartners = async () => {
+  try {
+    const response = await api.get('partners/get');
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
+export const getPartnerRewards = async (partnerId) => {
+  try {
+    const response = await api.get(`partners/getPartnerRewards`, { params: { PartnerId: partnerId } });
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};

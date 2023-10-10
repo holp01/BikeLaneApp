@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { View, FlatList, Text, Image, Button, Modal } from "react-native";
 
-import { getActiveRewards } from '../services/api';
+import { getPartnerRewards } from '../services/api';
 
-function RewardsScreen() {
+function RewardsScreen({ route }) {
     const [rewards, setRewards] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedReward, setSelectedReward] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => {
-        fetchActiveRewards();
-    }, []);
+    const { partnerId } = route.params;
 
-    const fetchActiveRewards = async () => {
+    useEffect(() => {
+        fetchPartnerRewards();
+    }, [partnerId]);
+
+    const fetchPartnerRewards = async () => {
         setRefreshing(true);
         try {
-            const fetchedRewards = await getActiveRewards();
+            const fetchedRewards = await getPartnerRewards(partnerId);
             setRewards(fetchedRewards);
         } catch (error) {
             console.error('There was an error fetching the rewards', error);
@@ -56,7 +58,7 @@ function RewardsScreen() {
                 renderItem={renderItem}
                 keyExtractor={item => item.id.toString()}
                 refreshing={refreshing}
-                onRefresh={fetchActiveRewards}
+                onRefresh={fetchPartnerRewards}
             />
             {selectedReward && (
                 <Modal
