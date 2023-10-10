@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList } from 'react-native';
 import { fetchTrips } from '../services/api';
 
-function HistoryScreen() {
+function MyTripsScreen() {
     const [trips, setTrips] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -51,4 +51,4 @@ function HistoryScreen() {
     );
 }
 
-export default HistoryScreen;
+export default MyTripsScreen;

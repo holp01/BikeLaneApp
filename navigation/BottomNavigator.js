@@ -1,8 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeMapScreen from '../screens/HomeMapScreen';
-import RewardsScreen from '../screens/RewardsScreen';
-import HistoryScreen from '../screens/HistoryScreen';
+import RewardsMenu from '../screens/RewardsMenu';
 import SettingsScreen from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
@@ -16,14 +15,9 @@ const BottomNavigator = () => {
         options={{ tabBarLabel: 'Map' }}
       />
       <Tab.Screen
-        name="Rewards"
-        component={RewardsScreen}
+        name="RewardsMenu"
+        component={RewardsMenu}
         options={{ tabBarLabel: 'Rewards' }}
-      />
-      <Tab.Screen
-        name="History"
-        component={HistoryScreen}
-        options={{ tabBarLabel: 'History' }}
       />
       <Tab.Screen
         name="Settings"
