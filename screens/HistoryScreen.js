@@ -22,23 +22,32 @@ function HistoryScreen() {
         }
     };
 
-    return (
-        <View style={{ padding: 16 }}>
-            <FlatList
-                data={trips}
-                keyExtractor={(item) => item.TripId.toString()}
-                renderItem={({ item }) => (
-                    <View style={{ padding: 10, borderBottomWidth: 1 }}>
-                        <Text>Start Time: {item.StartTime}</Text>
-                        <Text>End Time: {item.EndTime}</Text>
-                        <Text>Distance: {item.RewardableDistance} km</Text>
-                        <Text>Reward Points: {item.RewardPoints}</Text>
-                    </View>
-                )}
-                refreshing={refreshing}
-                onRefresh={loadTrips}
-            />
+    const renderItem = ({ item }) => (
+        <View style={{ flexDirection: 'row', alignItems: 'center', margin: 10, borderWidth: 1, borderColor: '#e0e0e0', padding: 15, borderRadius: 10 }}>
+            <View style={{ flex: 1, marginLeft: 15 }}>
+                <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Start Time:</Text>
+                <Text style={{ marginBottom: 6 }}>{item.startTime}</Text>
+                
+                <Text style={{ fontSize: 16, fontWeight: 'bold' }}>End Time:</Text>
+                <Text style={{ marginBottom: 6 }}>{item.endTime}</Text>
+                
+                <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Distance:</Text>
+                <Text style={{ marginBottom: 6 }}>{item.rewardableDistance} km</Text>
+                
+                <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Reward Points:</Text>
+                <Text>{item.rewardPoints}</Text>
+            </View>
         </View>
+    );
+    
+    return (
+        <FlatList
+            data={trips}
+            keyExtractor={(item) => item.tripId.toString()}
+            renderItem={renderItem}
+            refreshing={refreshing}
+            onRefresh={loadTrips}
+        />
     );
 }
 
