@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Button, Text } from "react-native";
+import { View, Button, Text, Modal } from "react-native";
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { startUserTrip, endUserTrip } from '../services/api';
@@ -14,6 +14,8 @@ function HomeMapScreen() {
     const tripTimeIntervalRef = useRef(null);
     const [currentTripId, setCurrentTripId] = useState(0);
     const [currentLocation, setCurrentLocation] = useState(null);
+    const [speed, setSpeed] = useState(0);
+    const [showTransportModal, setShowTransportModal] = useState(false);
 
     useEffect(() => {
         async function fetchLocation() {
@@ -38,7 +40,12 @@ function HomeMapScreen() {
         fetchLocation();
     }, []);
 
-    const startTrip = async () => {
+    const startTrip = () => {
+        setShowTransportModal(true);
+    };
+
+    const commenceTrip = async (selectedMode) => {
+        setShowTransportModal(selectedMode);
         setIsTripActive(true);
 
         // Clear any existing intervals for tripTime
@@ -57,21 +64,36 @@ function HomeMapScreen() {
 
         // Clear any existing intervals for waypoints
         clearInterval(waypointIntervalRef.current);
+
         // Set up a timer to capture waypoints every few seconds and directly assign to waypointIntervalRef.current
         waypointIntervalRef.current = setInterval(async () => {
-            const location = await Location.getCurrentPositionAsync({});
+            const newLocation = await Location.getCurrentPositionAsync({});
             const currentDateTimeInterval = new Date().toISOString();
+            const deltaTime = 1;  // in seconds
 
             setWaypoints(prevWaypoints => {
                 if (prevWaypoints.length > 0) {
                     const lastWaypoint = prevWaypoints[prevWaypoints.length - 1];
-                    const distance = haversine(lastWaypoint.latitude, lastWaypoint.longitude, location.coords.latitude, location.coords.longitude);
-                    setDistanceTravelled(prevDistance => prevDistance + distance);
-                }
+                    const distance = haversine(lastWaypoint.latitude, lastWaypoint.longitude, newLocation.coords.latitude, newLocation.coords.longitude);
+                    const newSpeed = distance / deltaTime * 3600;  // Multiply by 3600 to convert to km/h
 
-                return [...prevWaypoints, { ...location.coords, timestamp: currentDateTimeInterval }];
+                    // Check speed against selected transport mode
+                    const speedLimit = {
+                        'Walking': 15,
+                        'Bicycle': 25,
+                        'Electric Scooter': 30,
+                        'Bus': 50
+                    };
+
+                    if (newSpeed <= speedLimit[selectedMode]) {
+                        setDistanceTravelled(prevDistance => prevDistance + distance);
+                        setSpeed(newSpeed);
+                        return [...prevWaypoints, { ...newLocation.coords, timestamp: currentDateTimeInterval }];
+                    }
+                }
+                return prevWaypoints; // this ensures that if the speed is surpassed, waypoints remain unchanged.
             });
-        }, 5000);
+        }, 1000);
 
         // Start trip in backend
         const tripId = await startUserTrip(new Date().toISOString());
@@ -144,33 +166,67 @@ function HomeMapScreen() {
 
     return (
         <View style={{ flex: 1 }}>
-            {initialPosition ? (
-                <>
-                    <MapView
-                        style={{ flex: 1 }}
-                        region={{
-                            ...currentLocation,
-                            latitudeDelta: 0.0922,
-                            longitudeDelta: 0.0421
-                        }}
-                        showsUserLocation={true}
-                        followsUserLocation={true}
-                    >
-                    </MapView>
+            {/* Map Section */}
+            <MapView
+                style={{ flex: 0.6 }}
+                region={{
+                    ...currentLocation,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421
+                }}
+                showsUserLocation={true}
+                followsUserLocation={true}
+            />
 
-                    {isTripActive ? (
-                        <>
-                            <Button title="End Trip" onPress={endTrip} />
-                            <Text>Distance Travelled: {formatDistance(distanceTravelled)}</Text>
-                            <Text>Time Elapsed: {formatTime(tripTime)}</Text>
-                        </>
-                    ) : (
-                        <Button title="Start Trip" onPress={startTrip} />
-                    )}
-                </>
-            ) : (
-                <Text>Loading...</Text>
+            {/* Display the "Loading..." message over the map */}
+            {!initialPosition && (
+                <View style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',  // Slight white background to make text more readable
+                }}>
+                    <Text>Loading...</Text>
+                </View>
             )}
+
+            {/* Trip Info Section */}
+            <View style={{ flex: 0.2, padding: 10 }}>
+                {isTripActive && (
+                    <>
+                        <Text>Distance Travelled: {formatDistance(distanceTravelled)}</Text>
+                        <Text>Time Elapsed: {formatTime(tripTime)}</Text>
+                        <Text>Speed: {speed} km/h</Text>
+                    </>
+                )}
+            </View>
+
+            {/* Buttons Section */}
+            <View style={{ flex: 0.2, justifyContent: 'center' }}>
+                {isTripActive ? (
+                    <Button title="End Trip" onPress={endTrip} />
+                ) : (
+                    <Button title="Start Trip" onPress={startTrip} />
+                )}
+            </View>
+            {showTransportModal && (
+                <Modal animationType="slide" transparent={true} visible={showTransportModal}>
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <View style={{ width: 300, padding: 20, backgroundColor: 'white', borderRadius: 10 }}>
+                            <Text>Choose your mean of transport</Text>
+                            <Button title="Walking" onPress={() => { commenceTrip('Walking'); setShowTransportModal(false); }} />
+                            <Button title="Bicycle" onPress={() => { commenceTrip('Bicycle'); setShowTransportModal(false); }} />
+                            <Button title="Electric Scooter" onPress={() => { commenceTrip('Electric Scooter'); setShowTransportModal(false); }} />
+                            <Button title="Bus" onPress={() => { commenceTrip('Bus'); setShowTransportModal(false); }} />
+                        </View>
+                    </View>
+                </Modal>
+            )}
+
         </View>
     );
 }
